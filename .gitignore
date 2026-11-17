@@ -1,0 +1,72 @@
+# Python virtual environments
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python build files
+build/
+*.egg-info/
+.eggs/
+
+# Test and tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Frontend dependencies and builds
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Database backups
+*.sql
+*.sql.gz
+*.sql.zip
+*.dump
+*.bak
+backups/
+Backups/
+
+# Local database files
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+
+# Local uploads
+uploads/
+
+# Logs
+*.log
+logs/
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp

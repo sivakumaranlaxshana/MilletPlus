@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="origin" />
+  <title>Millet Plus — Sandbox Payment</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 30px 18px;
+      background: #f8f6ee;
+      color: #123d32;
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      max-width: 760px;
+      margin: auto;
+    }
+
+    textarea {
+      box-sizing: border-box;
+      width: 100%;
+      min-height: 350px;
+      padding: 15px;
+      border: 1px solid #b9c9bd;
+      border-radius: 8px;
+      font-family: monospace;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 13px 22px;
+      background: #932c2f;
+      color: white;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #error {
+      color: #932c2f;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>PayHere Sandbox Payment</h1>
+    <p>Paste the complete checkout API response below.</p>
+    <p>Testing only. Do not enter a real bank card.</p>
+
+    <form id="test-form">
+      <textarea
+        id="checkout-data"
+        aria-label="Checkout API response"
+        placeholder="Paste the complete JSON response here"
+        required
+      ></textarea>
+
+      <button type="submit">Open Sandbox Checkout</button>
+    </form>
+
+    <p id="error" role="alert"></p>
+  </main>
+
+  <script>
+    document
+      .getElementById("test-form")
+      .addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const error = document.getElementById("error");
+        error.textContent = "";
+
+        try {
+          const data = JSON.parse(
+            document.getElementById("checkout-data").value
+          );
+
+          const sandboxUrl =
+            "https://sandbox.payhere.lk/pay/checkout";
+
+          if (
+            data.sandbox !== true ||
+            data.action_url !== sandboxUrl ||
+            data.method !== "POST" ||
+            !data.fields ||
+            typeof data.fields !== "object" ||
+            Array.isArray(data.fields)
+          ) {
+            throw new Error(
+              "Paste a valid Sandbox checkout API response."
+            );
+          }
+
+          const requiredFields = [
+            "merchant_id",
+            "return_url",
+            "cancel_url",
+            "notify_url",
+            "first_name",
+            "last_name",
+            "email",
+            "phone",
+            "address",
+            "city",
+            "country",
+            "order_id",
+            "items",
+            "currency",
+            "amount",
+            "hash"
+          ];
+
+          const paymentForm = document.createElement("form");
+          paymentForm.method = "POST";
+          paymentForm.action = sandboxUrl;
+
+          for (const name of requiredFields) {
+            const value = data.fields[name];
+
+            if (typeof value !== "string" || !value.trim()) {
+              throw new Error("Missing checkout field: " + name);
+            }
+
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = name;
+            input.value = value;
+
+            paymentForm.appendChild(input);
+          }
+
+          document.body.appendChild(paymentForm);
+          paymentForm.submit();
+        } catch (err) {
+          error.textContent = err.message;
+        }
+      });
+  </script>
+</body>
+</html>
