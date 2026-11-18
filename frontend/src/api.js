@@ -4,6 +4,7 @@ const API_URL = (
 
 export async function apiRequest(path, options = {}) {
   const { auth = true, ...request } = options;
+
   const token = sessionStorage.getItem("millet_access_token");
   const headers = new Headers(request.headers || {});
 
@@ -44,6 +45,7 @@ export async function apiRequest(path, options = {}) {
             : "Request failed. Please try again.";
 
     const error = new Error(message);
+
     error.status = response.status;
     error.code = detail?.code ?? null;
     error.detail = detail;
