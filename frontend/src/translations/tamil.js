@@ -748,4 +748,391 @@ const tamil = {
   "Unpaid": "செலுத்தப்படவில்லை"
 };
 
+// Admin Dashboard translations
+Object.assign(tamil, {
+  "Admin": "நிர்வாகி",
+  "ADMIN": "நிர்வாகம்",
+  "Admin Dashboard": "நிர்வாகப் பக்கம்",
+  "Admin workspace": "நிர்வாகப் பணிப்பகுதி",
+
+  "Overview": "கண்ணோட்டம்",
+  "Harvests": "அறுவடைகள்",
+  "Stock": "கையிருப்பு",
+  "Orders": "ஆர்டர்கள்",
+  "Payments": "பணப் பதிவுகள்",
+  "Users": "பயனர்கள்",
+  "Plans": "சந்தா திட்டங்கள்",
+  "Reports": "அறிக்கைகள்",
+
+  "Welcome": "வரவேற்கிறோம்",
+  "Logout": "வெளியேறு",
+  "Refresh": "புதுப்பி",
+  "Search": "தேடு",
+  "View": "பார்",
+  "Action": "செயல்",
+  "Previous": "முந்தையது",
+  "Next": "அடுத்தது",
+  "Page": "பக்கம்",
+  "records": "பதிவுகள்",
+  "Record": "பதிவு",
+  "Close details": "விவரங்களை மூடு",
+
+  "Loading your dashboard…": "நிர்வாகப் பக்கம் ஏற்றப்படுகிறது…",
+  "Loading records…": "பதிவுகள் ஏற்றப்படுகின்றன…",
+  "Loading history…": "வரலாறு ஏற்றப்படுகிறது…",
+  "Back to login": "உள்நுழைவுக்குத் திரும்பு",
+  "Could not load your account.": "உங்கள் கணக்கு விவரங்களைப் பெற முடியவில்லை.",
+  "Records could not be loaded.": "பதிவுகளைப் பெற முடியவில்லை.",
+  "No records found.": "பதிவுகள் எதுவும் இல்லை.",
+  "The backend returned an unexpected list format.": "சேவையகத்திலிருந்து கிடைத்த பட்டியலின் வடிவம் சரியாக இல்லை.",
+
+  "Manage millet. Support farmers. Grow together.": "சிறுதானியத்தை நிர்வகிப்போம். விவசாயிகளுக்கு உதவுவோம். இணைந்து வளர்வோம்.",
+  "Manage your platform records in one place.": "தளத்தின் பதிவுகளை ஒரே இடத்தில் நிர்வகிக்கவும்.",
+  "Farmer and buyer accounts, organised in one place.": "விவசாயிகள் மற்றும் வாங்குபவர்களின் கணக்குகள் ஒரே இடத்தில்.",
+  "Better crops. Stronger communities.": "சிறந்த பயிர்கள். வலிமையான சமூகங்கள்.",
+  "Keep harvests, stock, orders and accounts organised.": "அறுவடை, கையிருப்பு, ஆர்டர் மற்றும் கணக்குப் பதிவுகளை ஒழுங்குபடுத்துங்கள்.",
+
+  "Pending harvests": "பரிசீலனைக்கான அறுவடைகள்",
+  "Waiting for review": "பரிசீலனைக்குக் காத்திருக்கின்றன",
+  "Crop records": "பயிர்ப் பதிவுகள்",
+  "Recorded crop cycles": "பதிவுசெய்யப்பட்ட பயிர்ச் சுழற்சிகள்",
+  "Farmers": "விவசாயிகள்",
+  "Registered farmers": "பதிவுசெய்த விவசாயிகள்",
+  "Buyers": "வாங்குபவர்கள்",
+  "Registered buyers": "பதிவுசெய்த வாங்குபவர்கள்",
+
+  "WORKSPACE": "பணிப்பகுதி",
+  "Needs attention": "கவனிக்க வேண்டியவை",
+  "Review harvests": "அறுவடைகளைப் பரிசீலிக்க",
+  "Manage buyer orders": "வாங்குபவர் ஆர்டர்களை நிர்வகிக்க",
+  "Check payment records": "பணப் பதிவுகளைப் பார்க்க",
+  "Manage user accounts": "பயனர் கணக்குகளை நிர்வகிக்க",
+
+  "MONTHLY REPORTS": "மாதாந்திர அறிக்கைகள்",
+  "See your platform clearly.": "உங்கள் தளத்தின் நிலையைத் தெளிவாக அறியுங்கள்.",
+  "Review collections, farmer payments and purchases for a selected month.": "தேர்ந்தெடுத்த மாதத்தின் வசூல்கள், விவசாயிகளுக்குச் செலுத்திய தொகைகள் மற்றும் கொள்முதல்களைப் பார்க்கவும்.",
+  "View reports": "அறிக்கைகளைப் பார்",
+
+  "Harvest verification": "அறுவடை சரிபார்ப்பு",
+  "Stock management": "கையிருப்பு நிர்வாகம்",
+  "Buyer orders": "வாங்குபவர் ஆர்டர்கள்",
+  "Payment records": "பணப் பதிவுகள்",
+  "User management": "பயனர் நிர்வாகம்",
+  "Subscription plans": "சந்தா திட்டங்கள்",
+  "Monthly reports": "மாதாந்திர அறிக்கைகள்",
+
+  "ID": "அடையாள எண்",
+  "Millet": "சிறுதானியம்",
+  "Farmer": "விவசாயி",
+  "Buyer": "வாங்குபவர்",
+  "Quantity (kg)": "அளவு (கிலோ)",
+  "Status": "நிலை",
+  "Review harvest": "அறுவடையைப் பரிசீலிக்க",
+  "Decision": "முடிவு",
+  "Approve": "அனுமதி",
+  "Reject": "நிராகரி",
+  "Review note": "பரிசீலனைக் குறிப்பு",
+  "Save review": "முடிவைச் சேமி",
+  "Save this harvest review?": "இந்த அறுவடையின் பரிசீலனை முடிவைச் சேமிக்கவா?",
+  "Harvest review saved.": "அறுவடையின் பரிசீலனை முடிவு சேமிக்கப்பட்டது.",
+
+  "Search users": "பயனர்களைத் தேடு",
+  "Search name, email or phone": "பெயர், மின்னஞ்சல் அல்லது தொலைபேசி எண்ணைத் தேடவும்",
+  "Name": "பெயர்",
+  "Role": "பங்கு",
+  "Phone": "தொலைபேசி",
+  "Email": "மின்னஞ்சல்",
+  "Account status": "கணக்கு நிலை",
+  "All roles": "அனைத்துப் பங்குகளும்",
+  "All statuses": "அனைத்து நிலைகளும்",
+
+  "Active": "செயலில் உள்ளது",
+  "Inactive": "செயலற்றது",
+  "Pending": "நிலுவையில் உள்ளது",
+  "Approved": "அனுமதிக்கப்பட்டது",
+  "Rejected": "நிராகரிக்கப்பட்டது",
+  "Completed": "முடிக்கப்பட்டது",
+  "Cancelled": "ரத்து செய்யப்பட்டது",
+  "Paid": "செலுத்தப்பட்டது",
+  "Unpaid": "செலுத்தப்படவில்லை",
+  "Partial": "பகுதியாகச் செலுத்தப்பட்டது",
+  "Failed": "தோல்வியடைந்தது",
+  "Success": "வெற்றியடைந்தது",
+  "Unknown": "தெரியவில்லை",
+  "Yes": "ஆம்",
+  "No": "இல்லை",
+
+  "active": "செயலில் உள்ளது",
+  "inactive": "செயலற்றது",
+  "pending": "நிலுவையில் உள்ளது",
+  "approved": "அனுமதிக்கப்பட்டது",
+  "rejected": "நிராகரிக்கப்பட்டது",
+  "completed": "முடிக்கப்பட்டது",
+  "cancelled": "ரத்து செய்யப்பட்டது",
+  "paid": "செலுத்தப்பட்டது",
+  "unpaid": "செலுத்தப்படவில்லை",
+  "partial": "பகுதியாகச் செலுத்தப்பட்டது",
+  "failed": "தோல்வியடைந்தது",
+  "success": "வெற்றியடைந்தது",
+  "farmer": "விவசாயி",
+  "buyer": "வாங்குபவர்",
+  "admin": "நிர்வாகி",
+  "cash": "பணம்",
+
+  "Activate account": "கணக்கைச் செயல்படுத்து",
+  "Deactivate account": "கணக்கைச் செயலிழக்கச் செய்",
+  "Activate": "செயல்படுத்து",
+  "Deactivate": "செயலிழக்கச் செய்",
+  "Reason": "காரணம்",
+  "Enter the reason for this status change": "இந்த நிலை மாற்றத்திற்கான காரணத்தை எழுதவும்",
+  "Enter a reason between 3 and 1000 characters.": "3 முதல் 1000 எழுத்துகளுக்குள் காரணத்தை எழுதவும்.",
+  "Activate this user account?": "இந்தப் பயனர் கணக்கைச் செயல்படுத்தவா?",
+  "Deactivate this user account?": "இந்தப் பயனர் கணக்கைச் செயலிழக்கச் செய்யவா?",
+  "User status updated.": "பயனரின் கணக்கு நிலை புதுப்பிக்கப்பட்டது.",
+  "Admin accounts cannot be changed through this endpoint.": "இந்த வசதி மூலம் நிர்வாகி கணக்குகளின் நிலையை மாற்ற முடியாது.",
+
+  "Status history": "நிலை மாற்ற வரலாறு",
+  "Previously active": "முன்பு செயலில் இருந்ததா",
+  "Now active": "இப்போது செயலில் உள்ளதா",
+  "Changed by": "மாற்றியவர்",
+  "Changed at": "மாற்றிய நேரம்",
+  "Saving…": "சேமிக்கப்படுகிறது…",
+  "Update failed.": "புதுப்பிக்க முடியவில்லை.",
+  "Refresh to confirm the current status before retrying.": "மீண்டும் முயற்சிக்கும் முன் புதுப்பி பொத்தானை அழுத்தி தற்போதைய நிலையைச் சரிபார்க்கவும்.",
+
+  "Farmer purchases": "விவசாயிகளிடமிருந்து கொள்முதல்",
+  "Buyer payments": "வாங்குபவர் கட்டணங்கள்",
+  "Subscription payments": "சந்தா கட்டணங்கள்",
+  "Purchase": "கொள்முதல்",
+  "Payment": "கட்டணம்",
+  "Amount": "தொகை",
+  "Total": "மொத்தம்",
+  "Balance": "மீதித் தொகை",
+  "Payment status": "கட்டண நிலை",
+  "Paid at": "செலுத்திய நேரம்",
+  "Cash payment history": "பணமாகச் செலுத்திய வரலாறு",
+  "Receipt": "பற்றுச்சீட்டு",
+  "Method": "முறை",
+  "Note": "குறிப்பு",
+
+  "Farmer subscriptions": "விவசாயிகளின் சந்தாக்கள்",
+  "Subscription": "சந்தா",
+  "Farmer ID": "விவசாயி அடையாள எண்",
+  "Plan": "திட்டம்",
+  "Ends at": "முடிவடையும் நேரம்",
+  "Plan availability": "சந்தா திட்டத்தின் கிடைப்புநிலை",
+  "Change whether this plan is available for subscription requests.": "இந்தத் திட்டத்திற்கு சந்தா கோரிக்கைகளை ஏற்க வேண்டுமா என்பதை மாற்றவும்.",
+  "Enable plan": "திட்டத்தைச் செயல்படுத்து",
+  "Disable plan": "திட்டத்தைச் செயலிழக்கச் செய்",
+  "Enable this subscription plan?": "இந்தச் சந்தா திட்டத்தைச் செயல்படுத்தவா?",
+  "Disable this subscription plan?": "இந்தச் சந்தா திட்டத்தைச் செயலிழக்கச் செய்யவா?",
+  "Subscription plan updated.": "சந்தா திட்டம் புதுப்பிக்கப்பட்டது.",
+
+  "Report month": "அறிக்கை மாதம்",
+  "Download CSV": "CSV பதிவிறக்கு",
+  "Report download failed.": "அறிக்கையைப் பதிவிறக்க முடியவில்லை.",
+  "Buyer collections": "வாங்குபவர்களிடமிருந்து வசூல்",
+  "Subscription collections": "சந்தா வசூல்",
+  "Total cash inflow": "மொத்தப் பண வரவு",
+  "Farmer cash payments": "விவசாயிகளுக்குச் செலுத்திய பணம்",
+  "Cash difference": "பண வரவு–செலவு வித்தியாசம்",
+  "Farmer payments": "விவசாயிகளுக்கான கொடுப்பனவுகள்",
+  "This report shows cash movement. Cash difference is not profit.": "இந்த அறிக்கை பண வரவு மற்றும் செலவைக் காட்டுகிறது. அவற்றின் வித்தியாசம் இலாபம் அல்ல.",
+
+  // Record detail labels
+  "User Id": "பயனர் அடையாள எண்",
+  "Farmer Id": "விவசாயி அடையாள எண்",
+  "Buyer Id": "வாங்குபவர் அடையாள எண்",
+  "Order Id": "ஆர்டர் அடையாள எண்",
+  "Stock Id": "கையிருப்பு அடையாள எண்",
+  "Harvest Id": "அறுவடை அடையாள எண்",
+  "Variety Id": "சிறுதானிய வகை அடையாள எண்",
+  "Purchase Id": "கொள்முதல் அடையாள எண்",
+  "Payment Id": "கட்டண அடையாள எண்",
+  "Subscription Id": "சந்தா அடையாள எண்",
+
+  "Farmer Name": "விவசாயியின் பெயர்",
+  "Buyer Name": "வாங்குபவரின் பெயர்",
+  "Variety Name": "சிறுதானிய வகை",
+  "Plan Name": "திட்டத்தின் பெயர்",
+  "Is Active": "செயலில் உள்ளதா",
+  "Sms Opt In": "SMS பெறச் சம்மதமா",
+  "Created At": "உருவாக்கிய நேரம்",
+  "Updated At": "புதுப்பித்த நேரம்",
+
+  "Quantity Kg": "அளவு (கிலோ)",
+  "Unit Price": "அலகு விலை",
+  "Total Amount": "மொத்தத் தொகை",
+  "Paid Amount": "செலுத்திய தொகை",
+  "Balance Amount": "மீதித் தொகை",
+  "Currency": "நாணயம்",
+  "Purchase Date": "கொள்முதல் தேதி",
+  "Payment Status": "கட்டண நிலை",
+  "Payment Method": "கட்டண முறை",
+  "Receipt Number": "பற்றுச்சீட்டு எண்",
+  "Recorded By": "பதிவுசெய்தவர்",
+
+  "Review Status": "பரிசீலனை நிலை",
+  "Review Note": "பரிசீலனைக் குறிப்பு",
+  "Reviewed By": "பரிசீலித்தவர்",
+  "Reviewed At": "பரிசீலித்த நேரம்",
+  "Harvest Date": "அறுவடை தேதி",
+  "Submitted At": "சமர்ப்பித்த நேரம்",
+
+  "Starts At": "தொடங்கும் நேரம்",
+  "Ends At": "முடிவடையும் நேரம்",
+  "Paid At": "செலுத்திய நேரம்",
+  "Order Status": "ஆர்டர் நிலை",
+  "Subscription Status": "சந்தா நிலை",
+  "Duration Months": "காலம் (மாதங்கள்)",
+  "Duration Days": "காலம் (நாட்கள்)",
+});
+
+
+Object.assign(tamil, {
+  "PayHere Sandbox": "PayHere சோதனைக் கட்டணம்",
+  "Order payment": "ஆர்டர் கட்டணம்",
+  "Payment": "கட்டணம்",
+  "Refresh": "புதுப்பி",
+
+  "Paid": "செலுத்தப்பட்டது",
+  "Pending confirmation": "உறுதிப்படுத்தல் நிலுவையில் உள்ளது",
+  "Unpaid": "செலுத்தப்படவில்லை",
+  "Failed": "தோல்வியடைந்தது",
+  "Cancelled": "ரத்து செய்யப்பட்டது",
+  "Refunded": "பணம் திருப்பப்பட்டது",
+
+  "First name": "முதற் பெயர்",
+  "Last name": "கடைசிப் பெயர்",
+  "Email": "மின்னஞ்சல்",
+  "City": "நகரம்",
+
+  "Checking payment…": "கட்டண நிலை சரிபார்க்கப்படுகிறது…",
+  "Opening checkout…": "கட்டணப் பக்கம் திறக்கப்படுகிறது…",
+  "Pay with PayHere →": "PayHere மூலம் செலுத்து →",
+
+  "Test checkout only. No live payment.":
+    "இது சோதனைக் கட்டணம் மட்டுமே. உண்மையான பணம் செலுத்தப்படாது.",
+
+  "Complete all payment details.":
+    "அனைத்துக் கட்டண விவரங்களையும் நிரப்பவும்.",
+
+  "Payment confirmed by the backend. Order fulfilment is tracked separately.":
+    "கட்டணம் சேவையகத்தால் உறுதிப்படுத்தப்பட்டது. ஆர்டர் நிறைவேற்றப்படும் நிலை தனியாகக் காட்டப்படும்.",
+
+  "Contact admin before attempting another payment.":
+    "மீண்டும் கட்டணம் செலுத்தும் முன் நிர்வாகியைத் தொடர்புகொள்ளவும்.",
+
+  "Phone and delivery address are taken from your saved order. The backend sets the payment amount.":
+    "தொலைபேசி எண்ணும் முகவரியும் சேமித்த ஆர்டரிலிருந்து பெறப்படும். கட்டணத் தொகையை சேவையகம் தீர்மானிக்கும்.",
+
+  "You have returned from checkout. The backend payment status is shown below. If it is still pending, press Refresh.":
+    "கட்டணப் பக்கத்திலிருந்து திரும்பியுள்ளீர்கள். கீழே சேவையகத்தின் தற்போதைய கட்டண நிலை காட்டப்படும். நிலுவையில் இருந்தால் புதுப்பி பொத்தானை அழுத்தவும்.",
+
+  "Refresh payment status before retrying.":
+    "மீண்டும் முயற்சிக்கும் முன் கட்டண நிலையைப் புதுப்பிக்கவும்.",
+
+  "Invalid payment history response.":
+    "கட்டண வரலாற்றின் பதில் சரியாக இல்லை.",
+
+  "Too many payment records. Please contact admin.":
+    "கட்டணப் பதிவுகள் அதிகமாக உள்ளன. நிர்வாகியைத் தொடர்புகொள்ளவும்.",
+
+  "This order needs admin review before another payment.":
+    "மீண்டும் கட்டணம் செலுத்தும் முன் இந்த ஆர்டரை நிர்வாகி பரிசீலிக்க வேண்டும்.",
+
+  "Payment response is incomplete. Refresh before retrying.":
+    "கட்டணப் பதில் முழுமையாக இல்லை. மீண்டும் முயற்சிக்கும் முன் புதுப்பிக்கவும்.",
+
+  "The earlier payment attempt is closed. Refresh and try again.":
+    "முந்தைய கட்டண முயற்சி முடிவடைந்துவிட்டது. புதுப்பித்து மீண்டும் முயற்சிக்கவும்.",
+
+  "Payment is not eligible for PayHere checkout. Refresh its status.":
+    "இந்தக் கட்டணத்திற்கு PayHere பக்கத்தைத் திறக்க முடியாது. அதன் நிலையைப் புதுப்பிக்கவும்.",
+
+  "The backend did not return a valid PayHere Sandbox checkout.":
+    "சேவையகம் சரியான PayHere சோதனைக் கட்டண விவரங்களை வழங்கவில்லை.",
+
+  "Checkout fields are incomplete.":
+    "கட்டண விவரங்கள் முழுமையாக இல்லை.",
+
+  "Invalid checkout field value.":
+    "கட்டண விவரத்தில் தவறான மதிப்பு உள்ளது.",
+
+  "Save your order, then continue to PayHere Sandbox payment.":
+    "முதலில் ஆர்டரைச் சேமித்து, பின்னர் PayHere சோதனைக் கட்டணத்தைச் செலுத்தவும்.",
+
+  "Continue to payment": "கட்டணம் செலுத்தத் தொடர்க"
+});
+
+
+Object.assign(tamil, {
+  "User actions": "பயனர் கணக்குச் செயல்கள்",
+  "Add user": "பயனரைச் சேர்",
+  "Edit user": "பயனரைத் திருத்து",
+  "Save user": "பயனரைச் சேமி",
+
+  "Farmer purchase actions": "விவசாயிக் கொள்முதல் செயல்கள்",
+  "New purchase": "புதிய கொள்முதல்",
+  "New farmer purchase": "புதிய விவசாயிக் கொள்முதல்",
+  "Close purchase form": "கொள்முதல் படிவத்தை மூடு",
+
+  "Received stock": "பெறப்பட்ட கையிருப்பு",
+  "Choose received stock": "பெறப்பட்ட கையிருப்பைத் தேர்ந்தெடுக்கவும்",
+  "Choose received stock.": "பெறப்பட்ட கையிருப்பைத் தேர்ந்தெடுக்கவும்.",
+  "Purchase date": "கொள்முதல் தேதி",
+  "Purchase price per kg (LKR)": "ஒரு கிலோ கொள்முதல் விலை (LKR)",
+  "Save purchase": "கொள்முதலைச் சேமி",
+  "Previous stock": "முந்தைய கையிருப்பு",
+  "Next stock": "அடுத்த கையிருப்பு",
+
+  "Record cash payment": "செலுத்திய பணத்தைப் பதிவு செய்",
+  "Receipt number": "பற்றுச்சீட்டு எண்",
+  "Amount (LKR)": "தொகை (LKR)",
+  "Paid at (Sri Lanka time)": "செலுத்திய நேரம் (இலங்கை நேரம்)",
+  "Retry saved request": "சேமித்த கோரிக்கையை மீண்டும் அனுப்பு",
+
+  "A saved request is awaiting confirmation. Retry uses exactly the same details.":
+    "சேமித்த கோரிக்கையின் முடிவு இன்னும் உறுதியாகவில்லை. மீண்டும் அனுப்பும்போது அதே விவரங்கள் பயன்படுத்தப்படும்.",
+
+  "The backend calculates the purchase total from the received quantity. Only one purchase is allowed per stock batch.":
+    "பெறப்பட்ட அளவிலிருந்து மொத்தக் கொள்முதல் தொகையைச் சேவையகம் கணக்கிடும். ஒவ்வொரு கையிருப்புத் தொகுதிக்கும் ஒரு கொள்முதல் பதிவு மட்டுமே அனுமதிக்கப்படும்.",
+
+  "Record money already paid to the farmer. This form does not transfer money. Times use Sri Lanka time.":
+    "விவசாயிக்கு ஏற்கனவே கொடுத்த பணத்தைப் பதிவு செய்யவும். இந்தப் படிவம் பணத்தை அனுப்பாது. நேரங்கள் இலங்கை நேரத்தில் உள்ளன.",
+
+  "Select View on a purchase to record its cash payment.":
+    "செலுத்திய பணத்தைப் பதிவு செய்ய, கொள்முதலின் பார் பொத்தானை அழுத்தவும்.",
+
+  "Could not save the record.":
+    "பதிவைச் சேமிக்க முடியவில்லை.",
+
+  "The result is incomplete. Retry the same request.":
+    "பதில் முழுமையாக இல்லை. அதே கோரிக்கையை மீண்டும் அனுப்பவும்.",
+
+  "Could not save the user. Check the user list before retrying.":
+    "பயனரைச் சேமிக்க முடியவில்லை. மீண்டும் முயற்சிக்கும் முன் பயனர் பட்டியலைச் சரிபார்க்கவும்.",
+
+  "Invalid stock response.":
+    "கையிருப்பு விவரங்களின் பதில் சரியாக இல்லை.",
+
+  "Enter a positive purchase price.":
+    "பூச்சியத்தைவிட அதிகமான கொள்முதல் விலையை உள்ளிடவும்.",
+
+  "Purchase date must not be after stock receipt or today.":
+    "கொள்முதல் தேதி கையிருப்பு பெற்ற தேதிக்கும் இன்றைய தேதிக்கும் பிறகு இருக்கக்கூடாது.",
+
+  "Enter a valid amount with up to two decimal places.":
+    "அதிகபட்சம் இரண்டு தசம இடங்களுடன் சரியான தொகையை உள்ளிடவும்.",
+
+  "Payment must be positive and must not exceed the balance.":
+    "செலுத்திய தொகை பூச்சியத்தைவிட அதிகமாகவும் மீதித் தொகையைவிட அதிகமாகாமலும் இருக்க வேண்டும்.",
+
+  "Enter a valid receipt number using letters, digits, / or -.":
+    "எழுத்துகள், இலக்கங்கள், / அல்லது - பயன்படுத்திச் சரியான பற்றுச்சீட்டு எண்ணை உள்ளிடவும்.",
+
+  "Choose a payment time between the purchase date and now.":
+    "கொள்முதல் தேதிக்கும் தற்போதைய நேரத்திற்கும் இடைப்பட்ட நேரத்தைத் தேர்ந்தெடுக்கவும்."
+});
+
 export default tamil;

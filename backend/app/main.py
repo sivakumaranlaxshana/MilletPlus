@@ -165,6 +165,10 @@ from app.routers.admin_subscription_reversals import (
     router as admin_subscription_reversals_router,
 )
 
+from app.routers.admin_user_editor import (
+    router as admin_user_editor_router,
+)
+
 # Application startup and shutdown
 
 @asynccontextmanager
@@ -231,6 +235,7 @@ app.include_router(admin_users_router)
 
 app.include_router(farmer_payments_router)
 app.include_router(admin_subscription_reversals_router)
+app.include_router(admin_user_editor_router)
 
 # Access check for POST /ai/crop-care.
 # Saved advice history remains readable.
