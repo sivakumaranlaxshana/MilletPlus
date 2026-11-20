@@ -1218,3 +1218,23 @@
   clip-path: none !important;
   background: #a52c35 !important;
 }
+/* Landing page action buttons only */
+#mp-public-page .mp-button {
+  width: 170px !important;
+  min-width: 170px !important;
+  max-width: 100% !important;
+
+  height: 42px !important;
+  min-height: 42px !important;
+
+  padding: 4px 12px !important;
+  border-radius: 999px !important;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  text-align: center;
+  white-space: normal;
+}
