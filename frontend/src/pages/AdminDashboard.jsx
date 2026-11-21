@@ -1,23 +1,14 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 import { apiRequest, dashboardPath } from "../api";
 import { tamilText } from "../translations";
 import { useSharedLanguage } from "../translations/language";
-
 import AdminStock from "../components/AdminStock";
 import OrdersPanel from "../components/OrdersPanel";
-
 import {
   AdminUserActions,
   AdminPurchaseActions,
 } from "../components/AdminActions";
-
 import "./AdminDashboard.css";
 
 const LIMIT = 20;
@@ -124,8 +115,7 @@ function display(value, t) {
     : String(value);
 }
 
-const recordId = (row) =>
-  row?.id ?? row?.payment_id;
+const recordId = (row) => row?.id ?? row?.payment_id;
 
 const label = (key) =>
   key
@@ -279,7 +269,6 @@ function Table({ rows, columns, onView, t }) {
             {columns.map(([key, title]) => (
               <th key={key}>{t(title)}</th>
             ))}
-
             {onView && <th>{t("Action")}</th>}
           </tr>
         </thead>
@@ -293,9 +282,7 @@ function Table({ rows, columns, onView, t }) {
                   key === "status" ||
                   key.endsWith("_status") ? (
                     <Badge value={row[key]} t={t} />
-                  ) : /amount|balance|unit_price/.test(
-                      key,
-                    ) ? (
+                  ) : /amount|balance|unit_price/.test(key) ? (
                     money(row[key])
                   ) : (
                     display(row[key], t)
@@ -328,9 +315,7 @@ function RecordDetails({ record, t }) {
       {Object.entries(record)
         .filter(
           ([key]) =>
-            !["details_path", "request_key"].includes(
-              key,
-            ),
+            !["details_path", "request_key"].includes(key),
         )
         .map(([key, value]) => (
           <div key={key}>
@@ -342,9 +327,271 @@ function RecordDetails({ record, t }) {
   );
 }
 
+/* Crop varieties are managed inside this file. */
+function AdminCropVarieties({ lang = "en" }) {
+  const say = (text) =>
+    lang === "ta" ? tamilText(text) : text;
+
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [pageOffset, setPageOffset] = useState(0);
+  const [listRevision, setListRevision] = useState(0);
+
+  const submitLock = useRef(false);
+  const pageSize = 10;
+
+  const result = useRemote(
+    `/crop-varieties?offset=${pageOffset}&limit=${pageSize}`,
+    listRevision,
+  );
+
+  const varieties = Array.isArray(result.data)
+    ? result.data
+    : [];
+
+  async function saveVariety(event) {
+    event.preventDefault();
+
+    if (submitLock.current) return;
+
+    const cleanedName = name.trim();
+    const cleanedPrice = price.trim();
+
+    setError("");
+    setSuccess("");
+
+    if (!cleanedName) {
+      setError(say("Enter a crop variety name."));
+      return;
+    }
+
+    if (
+      cleanedPrice &&
+      !/^\d{1,8}(\.\d{1,2})?$/.test(cleanedPrice)
+    ) {
+      setError(
+        say(
+          "Enter a valid price with at most two decimal places.",
+        ),
+      );
+      return;
+    }
+
+    submitLock.current = true;
+    setBusy(true);
+
+    try {
+      const saved = await apiRequest("/crop-varieties", {
+        method: "POST",
+        body: JSON.stringify({
+          name: cleanedName,
+          ...(cleanedPrice
+            ? { market_price_per_kg: cleanedPrice }
+            : {}),
+        }),
+      });
+
+      setSuccess(
+        `${saved.name}: ${say(
+          "Variety added. Farmers can select it when adding a crop.",
+        )}`,
+      );
+
+      setName("");
+      setPrice("");
+      setOpen(false);
+      setPageOffset(0);
+      setListRevision((value) => value + 1);
+    } catch (err) {
+      const message =
+        err.status && err.message
+          ? err.message
+          : "Result could not be confirmed. Refresh the list before retrying.";
+
+      setError(say(message));
+    } finally {
+      submitLock.current = false;
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section
+      className="ad-panel adcv-panel"
+      aria-labelledby="adcv-title"
+    >
+      <div className="ad-panel-heading adcv-heading">
+        <div>
+          <h2 id="adcv-title">
+            {say("Crop Varieties")}
+          </h2>
+          <p className="adcv-help">
+            {say("Add millet varieties for farmers to select.")}
+          </p>
+        </div>
+
+        <div className="adcv-actions">
+          <button
+            type="button"
+            className="ad-btn ad-outline"
+            disabled={busy || result.loading}
+            onClick={() =>
+              setListRevision((value) => value + 1)
+            }
+          >
+            {say("Refresh")}
+          </button>
+
+          <button
+            type="button"
+            className="ad-btn"
+            disabled={busy}
+            aria-expanded={open}
+            aria-controls="adcv-form"
+            onClick={() => setOpen((value) => !value)}
+          >
+            {say(open ? "Close" : "+ Add Variety")}
+          </button>
+        </div>
+      </div>
+
+      {success && (
+        <p className="adcv-success" role="status">
+          {success}
+        </p>
+      )}
+
+      {error && (
+        <p className="adcv-error" role="alert">
+          {error}
+        </p>
+      )}
+
+      {open && (
+        <form
+          id="adcv-form"
+          className="adcv-form"
+          onSubmit={saveVariety}
+          aria-busy={busy}
+        >
+          <div className="adcv-fields">
+            <label htmlFor="adcv-name">
+              {say("Variety name")} *
+              <input
+                id="adcv-name"
+                name="variety_name"
+                type="text"
+                value={name}
+                onChange={(event) =>
+                  setName(event.target.value)
+                }
+                maxLength={100}
+                placeholder="Foxtail Millet"
+                required
+                disabled={busy}
+              />
+            </label>
+
+            <label htmlFor="adcv-price">
+              {say("Market price / kg (LKR)")}
+              <input
+                id="adcv-price"
+                name="market_price_per_kg"
+                type="number"
+                value={price}
+                onChange={(event) =>
+                  setPrice(event.target.value)
+                }
+                min="0"
+                max="99999999.99"
+                step="0.01"
+                placeholder={say("Optional")}
+                disabled={busy}
+              />
+            </label>
+          </div>
+
+          <p className="adcv-help">
+            {say(
+              "The name may already exist in English; check before adding it again.",
+            )}
+          </p>
+
+          <button
+            className="ad-btn"
+            type="submit"
+            disabled={busy}
+          >
+            {say(busy ? "Saving…" : "Save Variety")}
+          </button>
+        </form>
+      )}
+
+      {result.loading ? (
+        <p role="status">{say("Loading varieties…")}</p>
+      ) : result.error ? (
+        <p className="adcv-error" role="alert">
+          {result.error}
+        </p>
+      ) : varieties.length ? (
+        <ul className="adcv-list">
+          {varieties.map((variety) => (
+            <li key={variety.id}>
+              <span>{variety.name}</span>
+              <span>
+                {variety.market_price_per_kg == null
+                  ? say("Not set")
+                  : `LKR ${variety.market_price_per_kg}`}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>{say("No varieties on this page.")}</p>
+      )}
+
+      <div className="adcv-pagination">
+        <button
+          type="button"
+          className="ad-btn ad-outline"
+          disabled={busy || result.loading || pageOffset === 0}
+          onClick={() =>
+            setPageOffset((value) =>
+              Math.max(0, value - pageSize),
+            )
+          }
+        >
+          {say("Previous")}
+        </button>
+
+        <span>{pageOffset / pageSize + 1}</span>
+
+        <button
+          type="button"
+          className="ad-btn ad-outline"
+          disabled={
+            busy ||
+            result.loading ||
+            Boolean(result.error) ||
+            varieties.length < pageSize
+          }
+          onClick={() =>
+            setPageOffset((value) => value + pageSize)
+          }
+        >
+          {say("Next")}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
-
   const { lang, setLang } = useSharedLanguage();
 
   const t = (text) =>
@@ -352,7 +599,6 @@ export default function AdminDashboard() {
 
   const [account, setAccount] = useState(null);
   const [authError, setAuthError] = useState("");
-
   const [page, setPage] = useState("overview");
   const [offset, setOffset] = useState(0);
   const [revision, setRevision] = useState(0);
@@ -409,8 +655,7 @@ export default function AdminDashboard() {
           navigate("/login", { replace: true });
         } else {
           setAuthError(
-            error.message ||
-              "Could not load your account.",
+            error.message || "Could not load your account.",
           );
         }
       });
@@ -432,7 +677,6 @@ export default function AdminDashboard() {
     setOffset(0);
     setSearch("");
     setSearchInput("");
-
     clearSelection();
 
     window.scrollTo({
@@ -445,7 +689,6 @@ export default function AdminDashboard() {
     if (actionLock.current) return;
 
     clearSelection();
-
     setRevision((value) => value + 1);
   }
 
@@ -471,18 +714,14 @@ export default function AdminDashboard() {
   function logout() {
     if (actionLock.current) return;
 
-    sessionStorage.removeItem(
-      "millet_access_token",
-    );
-
+    sessionStorage.removeItem("millet_access_token");
     navigate("/", { replace: true });
   }
 
   let path = null;
 
   if (account) {
-    const pagination =
-      `limit=${LIMIT}&offset=${offset}`;
+    const pagination = `limit=${LIMIT}&offset=${offset}`;
 
     if (page === "overview") {
       path = "/dashboard/admin";
@@ -512,12 +751,10 @@ export default function AdminDashboard() {
       const endpoints = {
         farmer: "/admin/farmer-purchases",
         buyer: "/admin/finance/buyer-payments",
-        subscription:
-          "/admin/finance/subscription-payments",
+        subscription: "/admin/finance/subscription-payments",
       };
 
-      path =
-        `${endpoints[paymentTab]}?${pagination}`;
+      path = `${endpoints[paymentTab]}?${pagination}`;
     }
 
     if (page === "plans") {
@@ -527,12 +764,8 @@ export default function AdminDashboard() {
           : `/admin/farmer-subscriptions?${pagination}`;
     }
 
-    if (
-      page === "reports" &&
-      monthQuery(month)
-    ) {
-      path =
-        `/admin/reports/monthly?${monthQuery(month)}`;
+    if (page === "reports" && monthQuery(month)) {
+      path = `/admin/reports/monthly?${monthQuery(month)}`;
     }
   }
 
@@ -548,23 +781,15 @@ export default function AdminDashboard() {
         `?limit=${LIMIT}&offset=${historyOffset}`;
     }
 
-    if (
-      page === "payments" &&
-      paymentTab === "farmer"
-    ) {
+    if (page === "payments" && paymentTab === "farmer") {
       historyPath =
         `/admin/farmer-purchases/${selected.id}/payments` +
         `?limit=${LIMIT}&offset=${historyOffset}`;
     }
 
-    if (
-      page === "payments" &&
-      paymentTab !== "farmer"
-    ) {
+    if (page === "payments" && paymentTab !== "farmer") {
       const kind =
-        paymentTab === "buyer"
-          ? "buyer"
-          : "subscription";
+        paymentTab === "buyer" ? "buyer" : "subscription";
 
       detailPath =
         `/admin/finance/${kind}-payments/` +
@@ -572,15 +797,8 @@ export default function AdminDashboard() {
     }
   }
 
-  const history = useRemote(
-    historyPath,
-    revision,
-  );
-
-  const details = useRemote(
-    detailPath,
-    revision,
-  );
+  const history = useRemote(historyPath, revision);
+  const details = useRemote(detailPath, revision);
 
   const isListPage = [
     "harvests",
@@ -590,16 +808,13 @@ export default function AdminDashboard() {
   ].includes(page);
 
   const expectsEnvelope =
-    page === "users" ||
-    page === "payments";
+    page === "users" || page === "payments";
 
   const rawRows = expectsEnvelope
     ? result.data?.items
     : result.data;
 
-  const rows = Array.isArray(rawRows)
-    ? rawRows
-    : [];
+  const rows = Array.isArray(rawRows) ? rawRows : [];
 
   const invalidList =
     isListPage &&
@@ -609,47 +824,35 @@ export default function AdminDashboard() {
     !Array.isArray(rawRows);
 
   const totalRecords =
-    expectsEnvelope &&
-    result.data?.total_records != null
+    expectsEnvelope && result.data?.total_records != null
       ? Number(result.data.total_records)
       : NaN;
 
-  const hasNext =
-    Number.isFinite(totalRecords)
-      ? offset + rows.length < totalRecords
-      : rows.length === LIMIT;
+  const hasNext = Number.isFinite(totalRecords)
+    ? offset + rows.length < totalRecords
+    : rows.length === LIMIT;
 
-  const historyRows =
-    Array.isArray(history.data)
-      ? history.data
-      : Array.isArray(history.data?.items)
-        ? history.data.items
-        : [];
+  const historyRows = Array.isArray(history.data)
+    ? history.data
+    : Array.isArray(history.data?.items)
+      ? history.data.items
+      : [];
 
   const hasHistoryNext =
-    page === "users" &&
-    history.data?.total_records != null
+    page === "users" && history.data?.total_records != null
       ? historyOffset + historyRows.length <
         Number(history.data.total_records)
       : historyRows.length === LIMIT;
 
   const summary =
-    page === "overview" && result.data
-      ? result.data
-      : {};
+    page === "overview" && result.data ? result.data : {};
 
-  const report =
-    page === "reports" ? result.data : null;
+  const report = page === "reports" ? result.data : null;
 
-  async function mutate(
-    endpoint,
-    payload,
-    message,
-  ) {
+  async function mutate(endpoint, payload, message) {
     if (actionLock.current) return;
 
     actionLock.current = true;
-
     setBusy(true);
     setActionError("");
     setNotice("");
@@ -663,9 +866,7 @@ export default function AdminDashboard() {
       if (mounted.current) {
         setSelected(null);
         setHistoryOffset(0);
-
         setRevision((value) => value + 1);
-
         setNotice(t(message));
       }
     } catch (error) {
@@ -698,24 +899,15 @@ export default function AdminDashboard() {
       return;
     }
 
-    const form = new FormData(
-      event.currentTarget,
-    );
+    const form = new FormData(event.currentTarget);
 
-    const reason = String(
-      form.get("reason") || "",
-    )
+    const reason = String(form.get("reason") || "")
       .trim()
       .replace(/\s+/g, " ");
 
-    if (
-      reason.length < 3 ||
-      reason.length > 1000
-    ) {
+    if (reason.length < 3 || reason.length > 1000) {
       setActionError(
-        t(
-          "Enter a reason between 3 and 1000 characters.",
-        ),
+        t("Enter a reason between 3 and 1000 characters."),
       );
       return;
     }
@@ -755,19 +947,12 @@ export default function AdminDashboard() {
       return;
     }
 
-    const form = new FormData(
-      event.currentTarget,
-    );
-
-    const status = String(
-      form.get("status"),
-    );
+    const form = new FormData(event.currentTarget);
+    const status = String(form.get("status"));
 
     if (
       !["approved", "rejected"].includes(status) ||
-      !window.confirm(
-        t("Save this harvest review?"),
-      )
+      !window.confirm(t("Save this harvest review?"))
     ) {
       return;
     }
@@ -777,21 +962,15 @@ export default function AdminDashboard() {
       {
         status,
         review_note:
-          String(
-            form.get("review_note") || "",
-          ).trim() || null,
+          String(form.get("review_note") || "").trim() ||
+          null,
       },
       "Harvest review saved.",
     );
   }
 
   function updatePlan() {
-    if (
-      !selected ||
-      actionLock.current
-    ) {
-      return;
-    }
+    if (!selected || actionLock.current) return;
 
     const active = !selected.is_active;
 
@@ -815,15 +994,9 @@ export default function AdminDashboard() {
   }
 
   async function downloadReport() {
-    if (
-      actionLock.current ||
-      !monthQuery(month)
-    ) {
-      return;
-    }
+    if (actionLock.current || !monthQuery(month)) return;
 
     actionLock.current = true;
-
     setBusy(true);
     setActionError("");
 
@@ -834,16 +1007,12 @@ export default function AdminDashboard() {
       ).replace(/\/+$/, "");
 
       const headers = new Headers();
-
       const token = sessionStorage.getItem(
         "millet_access_token",
       );
 
       if (token) {
-        headers.set(
-          "Authorization",
-          `Bearer ${token}`,
-        );
+        headers.set("Authorization", `Bearer ${token}`);
       }
 
       const response = await fetch(
@@ -852,9 +1021,7 @@ export default function AdminDashboard() {
       );
 
       if (!response.ok) {
-        const data = await response
-          .json()
-          .catch(() => null);
+        const data = await response.json().catch(() => null);
 
         throw new Error(
           typeof data?.detail === "string"
@@ -867,12 +1034,9 @@ export default function AdminDashboard() {
         await response.blob(),
       );
 
-      const anchor =
-        document.createElement("a");
-
+      const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download =
-        `millet-plus-report-${month}.csv`;
+      anchor.download = `millet-plus-report-${month}.csv`;
 
       document.body.appendChild(anchor);
       anchor.click();
@@ -916,10 +1080,7 @@ export default function AdminDashboard() {
       ];
     }
 
-    if (
-      page === "payments" &&
-      paymentTab === "farmer"
-    ) {
+    if (page === "payments" && paymentTab === "farmer") {
       return [
         ["id", "Purchase"],
         ["farmer_name", "Farmer"],
@@ -938,9 +1099,7 @@ export default function AdminDashboard() {
           paymentTab === "buyer"
             ? "buyer_name"
             : "farmer_name",
-          paymentTab === "buyer"
-            ? "Buyer"
-            : "Farmer",
+          paymentTab === "buyer" ? "Buyer" : "Farmer",
         ],
         ["amount", "Amount"],
         ["payment_status", "Payment status"],
@@ -968,17 +1127,9 @@ export default function AdminDashboard() {
     ];
   }
 
-  function stat(
-    title,
-    value,
-    icon,
-    hint,
-  ) {
+  function stat(title, value, icon, hint) {
     return (
-      <article
-        className="ad-stat"
-        key={title}
-      >
+      <article className="ad-stat" key={title}>
         <span className="ad-stat-icon">
           <Icon name={icon} size={29} />
         </span>
@@ -989,10 +1140,7 @@ export default function AdminDashboard() {
           <small>{t(hint)}</small>
         </div>
 
-        <span
-          className="ad-stat-leaf"
-          aria-hidden="true"
-        >
+        <span className="ad-stat-leaf" aria-hidden="true">
           ❧
         </span>
       </article>
@@ -1002,25 +1150,14 @@ export default function AdminDashboard() {
   if (!account) {
     return (
       <main className="admin-dashboard ad-auth">
-        <img
-          src="/images/logo.png"
-          alt="Millet Plus"
-        />
+        <img src="/images/logo.png" alt="Millet Plus" />
 
-        <p
-          role={
-            authError ? "alert" : "status"
-          }
-        >
-          {authError ||
-            t("Loading your dashboard…")}
+        <p role={authError ? "alert" : "status"}>
+          {authError || t("Loading your dashboard…")}
         </p>
 
         {authError && (
-          <Link
-            to="/login"
-            className="ad-btn"
-          >
+          <Link to="/login" className="ad-btn">
             {t("Back to login")}
           </Link>
         )}
@@ -1030,17 +1167,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-dashboard">
-      {/* HEADER */}
-
       <header className="ad-header">
-        <Link
-          to="/"
-          className="ad-brand"
-        >
-          <img
-            src="/images/logo.png"
-            alt="Millet Plus"
-          />
+        <Link to="/" className="ad-brand">
+          <img src="/images/logo.png" alt="Millet Plus" />
         </Link>
 
         <span className="ad-header-title">
@@ -1048,10 +1177,7 @@ export default function AdminDashboard() {
         </span>
 
         <div className="ad-header-actions">
-          <div
-            className="ad-language"
-            aria-label="Language"
-          >
+          <div className="ad-language" aria-label="Language">
             <button
               type="button"
               aria-pressed={lang === "en"}
@@ -1073,11 +1199,8 @@ export default function AdminDashboard() {
 
           <div className="ad-account">
             <span className="ad-avatar">
-              {account.name
-                ?.charAt(0)
-                ?.toUpperCase() || "A"}
+              {account.name?.charAt(0)?.toUpperCase() || "A"}
             </span>
-
             <span>{account.name}</span>
           </div>
 
@@ -1087,70 +1210,51 @@ export default function AdminDashboard() {
             disabled={busy}
             onClick={logout}
           >
-            <Icon
-              name="logout"
-              size={17}
-            />
+            <Icon name="logout" size={17} />
             {t("Logout")}
           </button>
         </div>
       </header>
 
       <div className="ad-layout">
-        {/* SIDEBAR */}
-
         <aside className="ad-sidebar">
           <nav aria-label="Admin navigation">
-            {MENU.map(
-              ([key, title, icon]) => (
-                <button
-                  key={key}
-                  type="button"
-                  className={`ad-nav-item ${
-                    page === key
-                      ? "active"
-                      : ""
-                  }`}
-                  aria-current={
-                    page === key
-                      ? "page"
-                      : undefined
-                  }
-                  disabled={busy}
-                  onClick={() => go(key)}
-                  title={t(title)}
-                >
-                  <Icon name={icon} />
-                  <span>{t(title)}</span>
-                </button>
-              ),
-            )}
+            {MENU.map(([key, title, icon]) => (
+              <button
+                key={key}
+                type="button"
+                className={`ad-nav-item ${
+                  page === key ? "active" : ""
+                }`}
+                aria-current={
+                  page === key ? "page" : undefined
+                }
+                disabled={busy}
+                onClick={() => go(key)}
+                title={t(title)}
+              >
+                <Icon name={icon} />
+                <span>{t(title)}</span>
+              </button>
+            ))}
           </nav>
 
-          <div
-            className="ad-sidebar-art"
-            aria-hidden="true"
-          >
+          <div className="ad-sidebar-art" aria-hidden="true">
             <img
               src="/images/premium-millet.png"
               alt=""
               onError={(event) => {
-                event.currentTarget.style.display =
-                  "none";
+                event.currentTarget.style.display = "none";
               }}
             />
 
             <p>
-              {t(
-                "Better crops. Stronger communities.",
-              )}
+              {t("Better crops. Stronger communities.")}
             </p>
           </div>
         </aside>
 
         <div className="ad-workspace">
-          {/* OVERVIEW HERO */}
-
           {page === "overview" && (
             <section className="ad-hero">
               <div className="ad-hero-content">
@@ -1159,8 +1263,7 @@ export default function AdminDashboard() {
                 </span>
 
                 <h1>
-                  {t("Welcome")},{" "}
-                  {account.name}
+                  {t("Welcome")}, {account.name}
                 </h1>
 
                 <p>
@@ -1175,13 +1278,10 @@ export default function AdminDashboard() {
           )}
 
           <main className="ad-main">
-            {/* PAGE HEADING */}
-
             <div className="ad-page-heading">
               <div>
                 <p className="ad-breadcrumb">
-                  Millet Plus /{" "}
-                  {t(TITLES[page])}
+                  Millet Plus / {t(TITLES[page])}
                 </p>
 
                 <h1>{t(TITLES[page])}</h1>
@@ -1195,45 +1295,30 @@ export default function AdminDashboard() {
                 </p>
               </div>
 
-              {!["stock", "orders"].includes(
-                page,
-              ) && (
+              {!["stock", "orders"].includes(page) && (
                 <button
                   type="button"
                   className="ad-btn ad-outline"
-                  disabled={
-                    busy || result.loading
-                  }
+                  disabled={busy || result.loading}
                   onClick={refresh}
                 >
-                  <Icon
-                    name="refresh"
-                    size={16}
-                  />
+                  <Icon name="refresh" size={16} />
                   {t("Refresh")}
                 </button>
               )}
             </div>
 
             {notice && (
-              <p
-                className="ad-alert ad-success"
-                role="status"
-              >
+              <p className="ad-alert ad-success" role="status">
                 {notice}
               </p>
             )}
 
             {actionError && (
-              <p
-                className="ad-alert ad-error"
-                role="alert"
-              >
+              <p className="ad-alert ad-error" role="alert">
                 {actionError}
               </p>
             )}
-
-            {/* USER ADD / EDIT */}
 
             {page === "users" && (
               <AdminUserActions
@@ -1242,8 +1327,6 @@ export default function AdminDashboard() {
                 onSaved={refresh}
               />
             )}
-
-            {/* PURCHASE AND CASH PAYMENT */}
 
             {page === "payments" &&
               paymentTab === "farmer" && (
@@ -1255,32 +1338,21 @@ export default function AdminDashboard() {
                 />
               )}
 
-            {/* USER FILTERS */}
-
             {page === "users" && (
               <form
                 className="ad-toolbar ad-user-toolbar"
                 onSubmit={(event) => {
                   event.preventDefault();
-
-                  setSearch(
-                    searchInput.trim(),
-                  );
-
+                  setSearch(searchInput.trim());
                   setOffset(0);
                   clearSelection();
                 }}
               >
                 <label className="ad-search">
-                  <Icon
-                    name="search"
-                    size={18}
-                  />
+                  <Icon name="search" size={18} />
 
                   <input
-                    aria-label={t(
-                      "Search users",
-                    )}
+                    aria-label={t("Search users")}
                     placeholder={t(
                       "Search name, email or phone",
                     )}
@@ -1288,9 +1360,7 @@ export default function AdminDashboard() {
                     maxLength={100}
                     disabled={busy}
                     onChange={(event) =>
-                      setSearchInput(
-                        event.target.value,
-                      )
+                      setSearchInput(event.target.value)
                     }
                   />
                 </label>
@@ -1300,40 +1370,23 @@ export default function AdminDashboard() {
                   value={role}
                   disabled={busy}
                   onChange={(event) => {
-                    setRole(
-                      event.target.value,
-                    );
+                    setRole(event.target.value);
                     setOffset(0);
                     clearSelection();
                   }}
                 >
-                  <option value="">
-                    {t("All roles")}
-                  </option>
-
-                  <option value="farmer">
-                    {t("Farmer")}
-                  </option>
-
-                  <option value="buyer">
-                    {t("Buyer")}
-                  </option>
-
-                  <option value="admin">
-                    {t("Admin")}
-                  </option>
+                  <option value="">{t("All roles")}</option>
+                  <option value="farmer">{t("Farmer")}</option>
+                  <option value="buyer">{t("Buyer")}</option>
+                  <option value="admin">{t("Admin")}</option>
                 </select>
 
                 <select
-                  aria-label={t(
-                    "Account status",
-                  )}
+                  aria-label={t("Account status")}
                   value={userStatus}
                   disabled={busy}
                   onChange={(event) => {
-                    setUserStatus(
-                      event.target.value,
-                    );
+                    setUserStatus(event.target.value);
                     setOffset(0);
                     clearSelection();
                   }}
@@ -1341,11 +1394,7 @@ export default function AdminDashboard() {
                   <option value="">
                     {t("All statuses")}
                   </option>
-
-                  <option value="true">
-                    {t("Active")}
-                  </option>
-
+                  <option value="true">{t("Active")}</option>
                   <option value="false">
                     {t("Inactive")}
                   </option>
@@ -1361,60 +1410,42 @@ export default function AdminDashboard() {
               </form>
             )}
 
-            {/* PAYMENT TABS */}
-
             {page === "payments" && (
               <div className="ad-tabs">
                 {[
                   ["farmer", "Farmer purchases"],
                   ["buyer", "Buyer payments"],
-                  [
-                    "subscription",
-                    "Subscription payments",
-                  ],
+                  ["subscription", "Subscription payments"],
                 ].map(([key, title]) => (
                   <button
                     key={key}
                     type="button"
                     className={`ad-tab ${
-                      paymentTab === key
-                        ? "active"
-                        : ""
+                      paymentTab === key ? "active" : ""
                     }`}
                     disabled={busy}
-                    onClick={() =>
-                      switchPayment(key)
-                    }
+                    onClick={() => switchPayment(key)}
                   >
                     {t(title)}
                   </button>
                 ))}
               </div>
             )}
-
-            {/* PLAN TABS */}
 
             {page === "plans" && (
               <div className="ad-tabs">
                 {[
                   ["plans", "Plans"],
-                  [
-                    "subscriptions",
-                    "Farmer subscriptions",
-                  ],
+                  ["subscriptions", "Farmer subscriptions"],
                 ].map(([key, title]) => (
                   <button
                     key={key}
                     type="button"
                     className={`ad-tab ${
-                      planTab === key
-                        ? "active"
-                        : ""
+                      planTab === key ? "active" : ""
                     }`}
                     disabled={busy}
-                    onClick={() =>
-                      switchPlan(key)
-                    }
+                    onClick={() => switchPlan(key)}
                   >
                     {t(title)}
                   </button>
@@ -1422,21 +1453,16 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* REPORT FILTER */}
-
             {page === "reports" && (
               <div className="ad-toolbar">
                 <label className="ad-month-label">
                   {t("Report month")}
-
                   <input
                     type="month"
                     value={month}
                     disabled={busy}
                     onChange={(event) =>
-                      setMonth(
-                        event.target.value,
-                      )
+                      setMonth(event.target.value)
                     }
                   />
                 </label>
@@ -1457,22 +1483,14 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* LOADING / ERRORS */}
-
             {result.error && (
-              <p
-                className="ad-alert ad-error"
-                role="alert"
-              >
+              <p className="ad-alert ad-error" role="alert">
                 {result.error}
               </p>
             )}
 
             {invalidList && (
-              <p
-                className="ad-alert ad-error"
-                role="alert"
-              >
+              <p className="ad-alert ad-error" role="alert">
                 {t(
                   "The backend returned an unexpected list format.",
                 )}
@@ -1480,35 +1498,24 @@ export default function AdminDashboard() {
             )}
 
             {result.loading && (
-              <div
-                className="ad-loading"
-                role="status"
-              >
+              <div className="ad-loading" role="status">
                 <span className="ad-spinner" />
                 {t("Loading records…")}
               </div>
             )}
 
-            {/* STOCK */}
-
             {page === "stock" && (
               <section className="ad-panel ad-integrated">
+                <AdminCropVarieties lang={lang} />
                 <AdminStock lang={lang} />
               </section>
             )}
 
-            {/* ORDERS */}
-
             {page === "orders" && (
               <section className="ad-panel ad-integrated">
-                <OrdersPanel
-                  role="admin"
-                  lang={lang}
-                />
+                <OrdersPanel role="admin" lang={lang} />
               </section>
             )}
-
-            {/* OVERVIEW */}
 
             {page === "overview" &&
               !result.loading &&
@@ -1551,74 +1558,43 @@ export default function AdminDashboard() {
                           <span className="ad-eyebrow">
                             {t("WORKSPACE")}
                           </span>
-
-                          <h2>
-                            {t("Needs attention")}
-                          </h2>
+                          <h2>{t("Needs attention")}</h2>
                         </div>
 
-                        <Icon
-                          name="leaf"
-                          size={27}
-                        />
+                        <Icon name="leaf" size={27} />
                       </div>
 
                       {[
-                        [
-                          "harvests",
-                          "Review harvests",
-                          "leaf",
-                        ],
-                        [
-                          "orders",
-                          "Manage buyer orders",
-                          "cart",
-                        ],
+                        ["harvests", "Review harvests", "leaf"],
+                        ["orders", "Manage buyer orders", "cart"],
                         [
                           "payments",
                           "Check payment records",
                           "card",
                         ],
-                        [
-                          "users",
-                          "Manage user accounts",
-                          "users",
-                        ],
-                      ].map(
-                        ([key, title, icon]) => (
-                          <button
-                            key={key}
-                            type="button"
-                            className="ad-quick-link"
-                            onClick={() =>
-                              go(key)
-                            }
-                          >
-                            <span className="ad-quick-icon">
-                              <Icon
-                                name={icon}
-                              />
+                        ["users", "Manage user accounts", "users"],
+                      ].map(([key, title, icon]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          className="ad-quick-link"
+                          onClick={() => go(key)}
+                        >
+                          <span className="ad-quick-icon">
+                            <Icon name={icon} />
+                          </span>
+
+                          <span>{t(title)}</span>
+
+                          {key === "harvests" && (
+                            <span className="ad-count">
+                              {summary.pending_harvests ?? "—"}
                             </span>
+                          )}
 
-                            <span>
-                              {t(title)}
-                            </span>
-
-                            {key ===
-                              "harvests" && (
-                              <span className="ad-count">
-                                {summary.pending_harvests ??
-                                  "—"}
-                              </span>
-                            )}
-
-                            <Icon
-                              name="arrow"
-                              size={18}
-                            />
-                          </button>
-                        ),
-                      )}
+                          <Icon name="arrow" size={18} />
+                        </button>
+                      ))}
                     </section>
 
                     <section className="ad-report-promo">
@@ -1628,9 +1604,7 @@ export default function AdminDashboard() {
                         </span>
 
                         <h2>
-                          {t(
-                            "See your platform clearly.",
-                          )}
+                          {t("See your platform clearly.")}
                         </h2>
 
                         <p>
@@ -1642,26 +1616,17 @@ export default function AdminDashboard() {
                         <button
                           className="ad-btn"
                           type="button"
-                          onClick={() =>
-                            go("reports")
-                          }
+                          onClick={() => go("reports")}
                         >
                           {t("View reports")}
-
-                          <Icon
-                            name="arrow"
-                            size={16}
-                          />
+                          <Icon name="arrow" size={16} />
                         </button>
                       </div>
                     </section>
                   </div>
 
                   <section className="ad-welcome-strip">
-                    <Icon
-                      name="check"
-                      size={24}
-                    />
+                    <Icon name="check" size={24} />
 
                     <div>
                       <strong>
@@ -1680,28 +1645,18 @@ export default function AdminDashboard() {
                 </>
               )}
 
-            {/* RECORD TABLE */}
-
             {isListPage &&
               !result.loading &&
               !result.error &&
               !invalidList && (
                 <section className="ad-panel">
                   <div className="ad-panel-heading">
-                    <h2>
-                      {t(TITLES[page])}
-                    </h2>
+                    <h2>{t(TITLES[page])}</h2>
 
                     <span className="ad-muted">
-                      {Number.isFinite(
-                        totalRecords,
-                      )
-                        ? `${totalRecords} ${t(
-                            "records",
-                          )}`
-                        : `${t("Page")} ${
-                            offset / LIMIT + 1
-                          }`}
+                      {Number.isFinite(totalRecords)
+                        ? `${totalRecords} ${t("records")}`
+                        : `${t("Page")} ${offset / LIMIT + 1}`}
                     </span>
                   </div>
 
@@ -1712,25 +1667,16 @@ export default function AdminDashboard() {
                     t={t}
                   />
 
-                  {!(
-                    page === "plans" &&
-                    planTab === "plans"
-                  ) && (
+                  {!(page === "plans" && planTab === "plans") && (
                     <div className="ad-pagination">
                       <button
                         type="button"
                         className="ad-btn ad-outline"
-                        disabled={
-                          busy || offset === 0
-                        }
+                        disabled={busy || offset === 0}
                         onClick={() => {
                           setOffset((value) =>
-                            Math.max(
-                              0,
-                              value - LIMIT,
-                            ),
+                            Math.max(0, value - LIMIT),
                           );
-
                           clearSelection();
                         }}
                       >
@@ -1738,22 +1684,15 @@ export default function AdminDashboard() {
                       </button>
 
                       <span>
-                        {t("Page")}{" "}
-                        {offset / LIMIT + 1}
+                        {t("Page")} {offset / LIMIT + 1}
                       </span>
 
                       <button
                         type="button"
                         className="ad-btn ad-outline"
-                        disabled={
-                          busy || !hasNext
-                        }
+                        disabled={busy || !hasNext}
                         onClick={() => {
-                          setOffset(
-                            (value) =>
-                              value + LIMIT,
-                          );
-
+                          setOffset((value) => value + LIMIT);
                           clearSelection();
                         }}
                       >
@@ -1764,34 +1703,23 @@ export default function AdminDashboard() {
                 </section>
               )}
 
-            {/* MONTHLY REPORT */}
-
             {page === "reports" &&
               !result.loading &&
               !result.error &&
               report && (
                 <>
                   <section className="ad-report-stats">
-                    {REPORT_FIELDS.map(
-                      ([key, title]) => (
-                        <article
-                          className="ad-report-stat"
-                          key={key}
-                        >
-                          <span>
-                            {t(title)}
-                          </span>
-
-                          <strong>
-                            {money(
-                              report.summary?.[
-                                key
-                              ],
-                            )}
-                          </strong>
-                        </article>
-                      ),
-                    )}
+                    {REPORT_FIELDS.map(([key, title]) => (
+                      <article
+                        className="ad-report-stat"
+                        key={key}
+                      >
+                        <span>{t(title)}</span>
+                        <strong>
+                          {money(report.summary?.[key])}
+                        </strong>
+                      </article>
+                    ))}
                   </section>
 
                   <p className="ad-report-note">
@@ -1802,62 +1730,39 @@ export default function AdminDashboard() {
                   </p>
 
                   {[
-                    [
-                      "buyer_payments",
-                      "Buyer payments",
-                    ],
+                    ["buyer_payments", "Buyer payments"],
                     [
                       "subscription_payments",
                       "Subscription payments",
                     ],
-                    [
-                      "farmer_payments",
-                      "Farmer payments",
-                    ],
-                    [
-                      "purchases",
-                      "Farmer purchases",
-                    ],
+                    ["farmer_payments", "Farmer payments"],
+                    ["purchases", "Farmer purchases"],
                   ].map(([key, title]) => {
-                    const records =
-                      Array.isArray(
-                        report[key],
-                      )
-                        ? report[key]
-                        : [];
+                    const records = Array.isArray(report[key])
+                      ? report[key]
+                      : [];
 
                     const keys = [
                       ...new Set(
-                        records.flatMap(
-                          (row) =>
-                            Object.keys(row),
+                        records.flatMap((row) =>
+                          Object.keys(row),
                         ),
                       ),
                     ];
 
                     return (
-                      <section
-                        className="ad-panel"
-                        key={key}
-                      >
+                      <section className="ad-panel" key={key}>
                         <div className="ad-panel-heading">
-                          <h2>
-                            {t(title)}
-                          </h2>
-
-                          <span>
-                            {records.length}
-                          </span>
+                          <h2>{t(title)}</h2>
+                          <span>{records.length}</span>
                         </div>
 
                         <Table
                           rows={records}
-                          columns={keys.map(
-                            (field) => [
-                              field,
-                              label(field),
-                            ],
-                          )}
+                          columns={keys.map((field) => [
+                            field,
+                            label(field),
+                          ])}
                           t={t}
                         />
                       </section>
@@ -1866,75 +1771,52 @@ export default function AdminDashboard() {
                 </>
               )}
 
-            {/* SELECTED RECORD */}
-
             {selected && (
               <section className="ad-panel ad-selected">
                 <div className="ad-selected-heading">
                   <h2>
                     {page === "users"
                       ? selected.name
-                      : `${t(
-                          "Record",
-                        )} #${recordId(
-                          selected,
-                        )}`}
+                      : `${t("Record")} #${recordId(selected)}`}
                   </h2>
 
                   <button
                     className="ad-icon-btn"
                     type="button"
-                    aria-label={t(
-                      "Close details",
-                    )}
+                    aria-label={t("Close details")}
                     disabled={busy}
                     onClick={clearSelection}
                   >
-                    <Icon
-                      name="close"
-                      size={20}
-                    />
+                    <Icon name="close" size={20} />
                   </button>
                 </div>
 
-                {detailPath &&
-                  details.loading && (
-                    <p role="status">
-                      {t("Loading…")}
-                    </p>
-                  )}
+                {detailPath && details.loading && (
+                  <p role="status">{t("Loading…")}</p>
+                )}
 
                 {details.error && (
-                  <p
-                    className="ad-alert ad-error"
-                    role="alert"
-                  >
+                  <p className="ad-alert ad-error" role="alert">
                     {details.error}
                   </p>
                 )}
 
                 <RecordDetails
                   record={
-                    detailPath &&
-                    details.data
+                    detailPath && details.data
                       ? details.data
                       : selected
                   }
                   t={t}
                 />
 
-                {/* USER STATUS */}
-
                 {page === "users" &&
                   selected.role !== "admin" &&
-                  selected.id !==
-                    account.id && (
+                  selected.id !== account.id && (
                     <form
                       key={`user-${selected.id}`}
                       className="ad-action-form"
-                      onSubmit={
-                        updateUserStatus
-                      }
+                      onSubmit={updateUserStatus}
                     >
                       <h3>
                         {t(
@@ -1946,7 +1828,6 @@ export default function AdminDashboard() {
 
                       <label>
                         {t("Reason")}
-
                         <textarea
                           name="reason"
                           required
@@ -1977,8 +1858,7 @@ export default function AdminDashboard() {
                   )}
 
                 {page === "users" &&
-                  selected.role ===
-                    "admin" && (
+                  selected.role === "admin" && (
                     <p className="ad-report-note">
                       {t(
                         "Admin accounts cannot be changed through this endpoint.",
@@ -1986,35 +1866,21 @@ export default function AdminDashboard() {
                     </p>
                   )}
 
-                {/* HARVEST REVIEW */}
-
                 {page === "harvests" &&
-                  selected.review_status ===
-                    "pending" && (
+                  selected.review_status === "pending" && (
                     <form
                       key={`harvest-${selected.id}`}
                       className="ad-action-form"
-                      onSubmit={
-                        reviewHarvest
-                      }
+                      onSubmit={reviewHarvest}
                     >
-                      <h3>
-                        {t(
-                          "Review harvest",
-                        )}
-                      </h3>
+                      <h3>{t("Review harvest")}</h3>
 
                       <label>
                         {t("Decision")}
-
-                        <select
-                          name="status"
-                          disabled={busy}
-                        >
+                        <select name="status" disabled={busy}>
                           <option value="approved">
                             {t("Approve")}
                           </option>
-
                           <option value="rejected">
                             {t("Reject")}
                           </option>
@@ -2023,7 +1889,6 @@ export default function AdminDashboard() {
 
                       <label>
                         {t("Review note")}
-
                         <textarea
                           name="review_note"
                           maxLength={1000}
@@ -2037,50 +1902,35 @@ export default function AdminDashboard() {
                         className="ad-btn"
                         disabled={busy}
                       >
-                        {t(
-                          busy
-                            ? "Saving…"
-                            : "Save review",
-                        )}
+                        {t(busy ? "Saving…" : "Save review")}
                       </button>
                     </form>
                   )}
 
-                {/* PLAN AVAILABILITY */}
+                {page === "plans" && planTab === "plans" && (
+                  <div className="ad-action-form">
+                    <h3>{t("Plan availability")}</h3>
 
-                {page === "plans" &&
-                  planTab === "plans" && (
-                    <div className="ad-action-form">
-                      <h3>
-                        {t(
-                          "Plan availability",
-                        )}
-                      </h3>
+                    <p className="ad-muted">
+                      {t(
+                        "Change whether this plan is available for subscription requests.",
+                      )}
+                    </p>
 
-                      <p className="ad-muted">
-                        {t(
-                          "Change whether this plan is available for subscription requests.",
-                        )}
-                      </p>
-
-                      <button
-                        type="button"
-                        className="ad-btn"
-                        disabled={busy}
-                        onClick={
-                          updatePlan
-                        }
-                      >
-                        {t(
-                          selected.is_active
-                            ? "Disable plan"
-                            : "Enable plan",
-                        )}
-                      </button>
-                    </div>
-                  )}
-
-                {/* STATUS / CASH HISTORY */}
+                    <button
+                      type="button"
+                      className="ad-btn"
+                      disabled={busy}
+                      onClick={updatePlan}
+                    >
+                      {t(
+                        selected.is_active
+                          ? "Disable plan"
+                          : "Enable plan",
+                      )}
+                    </button>
+                  </div>
+                )}
 
                 {historyPath && (
                   <div className="ad-history">
@@ -2094,9 +1944,7 @@ export default function AdminDashboard() {
 
                     {history.loading ? (
                       <p role="status">
-                        {t(
-                          "Loading history…",
-                        )}
+                        {t("Loading history…")}
                       </p>
                     ) : history.error ? (
                       <p
@@ -2108,55 +1956,28 @@ export default function AdminDashboard() {
                     ) : (
                       <>
                         <Table
-                          rows={
-                            historyRows
-                          }
+                          rows={historyRows}
                           columns={
-                            page ===
-                            "users"
+                            page === "users"
                               ? [
                                   [
                                     "previous_active",
                                     "Previously active",
                                   ],
-                                  [
-                                    "new_active",
-                                    "Now active",
-                                  ],
-                                  [
-                                    "reason",
-                                    "Reason",
-                                  ],
+                                  ["new_active", "Now active"],
+                                  ["reason", "Reason"],
                                   [
                                     "changed_by_name",
                                     "Changed by",
                                   ],
-                                  [
-                                    "changed_at",
-                                    "Changed at",
-                                  ],
+                                  ["changed_at", "Changed at"],
                                 ]
                               : [
-                                  [
-                                    "receipt_number",
-                                    "Receipt",
-                                  ],
-                                  [
-                                    "amount",
-                                    "Amount",
-                                  ],
-                                  [
-                                    "payment_method",
-                                    "Method",
-                                  ],
-                                  [
-                                    "paid_at",
-                                    "Paid at",
-                                  ],
-                                  [
-                                    "note",
-                                    "Note",
-                                  ],
+                                  ["receipt_number", "Receipt"],
+                                  ["amount", "Amount"],
+                                  ["payment_method", "Method"],
+                                  ["paid_at", "Paid at"],
+                                  ["note", "Note"],
                                 ]
                           }
                           t={t}
@@ -2167,45 +1988,29 @@ export default function AdminDashboard() {
                             type="button"
                             className="ad-btn ad-outline"
                             disabled={
-                              busy ||
-                              historyOffset ===
-                                0
+                              busy || historyOffset === 0
                             }
                             onClick={() =>
-                              setHistoryOffset(
-                                (value) =>
-                                  Math.max(
-                                    0,
-                                    value -
-                                      LIMIT,
-                                  ),
+                              setHistoryOffset((value) =>
+                                Math.max(0, value - LIMIT),
                               )
                             }
                           >
-                            {t(
-                              "Previous",
-                            )}
+                            {t("Previous")}
                           </button>
 
                           <span>
                             {t("Page")}{" "}
-                            {historyOffset /
-                              LIMIT +
-                              1}
+                            {historyOffset / LIMIT + 1}
                           </span>
 
                           <button
                             type="button"
                             className="ad-btn ad-outline"
-                            disabled={
-                              busy ||
-                              !hasHistoryNext
-                            }
+                            disabled={busy || !hasHistoryNext}
                             onClick={() =>
                               setHistoryOffset(
-                                (value) =>
-                                  value +
-                                  LIMIT,
+                                (value) => value + LIMIT,
                               )
                             }
                           >
@@ -2220,15 +2025,10 @@ export default function AdminDashboard() {
             )}
           </main>
 
-          {/* FOOTER */}
-
           <footer className="ad-footer ad-admin-footer">
             <div className="ad-admin-footer-top">
               <div className="ad-admin-footer-brand">
-                <Link
-                  to="/"
-                  className="ad-footer-brand"
-                >
+                <Link to="/" className="ad-footer-brand">
                   <img
                     src="/images/logo.png"
                     alt="Millet Plus"
@@ -2242,47 +2042,29 @@ export default function AdminDashboard() {
                 </p>
 
                 <strong>
-                  {t(
-                    "Better crops. Stronger communities.",
-                  )}
+                  {t("Better crops. Stronger communities.")}
                 </strong>
               </div>
 
               <div className="ad-admin-footer-links">
-                <h3>
-                  {t("Admin workspace")}
-                </h3>
+                <h3>{t("Admin workspace")}</h3>
 
                 <div>
                   {[
-                    [
-                      "overview",
-                      "Overview",
-                    ],
-                    [
-                      "harvests",
-                      "Harvests",
-                    ],
+                    ["overview", "Overview"],
+                    ["harvests", "Harvests"],
                     ["stock", "Stock"],
                     ["orders", "Orders"],
                     ["users", "Users"],
-                    [
-                      "payments",
-                      "Payments",
-                    ],
+                    ["payments", "Payments"],
                     ["plans", "Plans"],
-                    [
-                      "reports",
-                      "Reports",
-                    ],
+                    ["reports", "Reports"],
                   ].map(([key, title]) => (
                     <button
                       key={key}
                       type="button"
                       disabled={busy}
-                      onClick={() =>
-                        go(key)
-                      }
+                      onClick={() => go(key)}
                     >
                       {t(title)}
                     </button>
@@ -2290,18 +2072,12 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="ad-admin-footer-languages">
-                  <span>
-                    {t("Languages")}:
-                  </span>
+                  <span>{t("Languages")}:</span>
 
                   <button
                     type="button"
-                    aria-pressed={
-                      lang === "en"
-                    }
-                    onClick={() =>
-                      setLang("en")
-                    }
+                    aria-pressed={lang === "en"}
+                    onClick={() => setLang("en")}
                   >
                     English
                   </button>
@@ -2310,12 +2086,8 @@ export default function AdminDashboard() {
 
                   <button
                     type="button"
-                    aria-pressed={
-                      lang === "ta"
-                    }
-                    onClick={() =>
-                      setLang("ta")
-                    }
+                    aria-pressed={lang === "ta"}
+                    onClick={() => setLang("ta")}
                   >
                     தமிழ்
                   </button>
@@ -2325,20 +2097,14 @@ export default function AdminDashboard() {
 
             <div className="ad-admin-footer-bottom">
               <span>
-                ©{" "}
-                {new Date().getFullYear()}{" "}
-                Millet Plus
+                © {new Date().getFullYear()} Millet Plus
               </span>
 
               <span>
-                {t(
-                  "Growing together, season after season.",
-                )}
+                {t("Growing together, season after season.")}
               </span>
 
-              <Link to="/">
-                {t("Home")}
-              </Link>
+              <Link to="/">{t("Home")}</Link>
             </div>
           </footer>
         </div>
