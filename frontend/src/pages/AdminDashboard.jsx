@@ -269,6 +269,7 @@ function Table({ rows, columns, onView, t }) {
             {columns.map(([key, title]) => (
               <th key={key}>{t(title)}</th>
             ))}
+
             {onView && <th>{t("Action")}</th>}
           </tr>
         </thead>
@@ -327,7 +328,6 @@ function RecordDetails({ record, t }) {
   );
 }
 
-/* Crop varieties are managed inside this file. */
 function AdminCropVarieties({ lang = "en" }) {
   const say = (text) =>
     lang === "ta" ? tamilText(text) : text;
@@ -429,6 +429,7 @@ function AdminCropVarieties({ lang = "en" }) {
           <h2 id="adcv-title">
             {say("Crop Varieties")}
           </h2>
+
           <p className="adcv-help">
             {say("Add millet varieties for farmers to select.")}
           </p>
@@ -481,6 +482,7 @@ function AdminCropVarieties({ lang = "en" }) {
           <div className="adcv-fields">
             <label htmlFor="adcv-name">
               {say("Variety name")} *
+
               <input
                 id="adcv-name"
                 name="variety_name"
@@ -498,6 +500,7 @@ function AdminCropVarieties({ lang = "en" }) {
 
             <label htmlFor="adcv-price">
               {say("Market price / kg (LKR)")}
+
               <input
                 id="adcv-price"
                 name="market_price_per_kg"
@@ -532,7 +535,9 @@ function AdminCropVarieties({ lang = "en" }) {
       )}
 
       {result.loading ? (
-        <p role="status">{say("Loading varieties…")}</p>
+        <p role="status">
+          {say("Loading varieties…")}
+        </p>
       ) : result.error ? (
         <p className="adcv-error" role="alert">
           {result.error}
@@ -542,6 +547,7 @@ function AdminCropVarieties({ lang = "en" }) {
           {varieties.map((variety) => (
             <li key={variety.id}>
               <span>{variety.name}</span>
+
               <span>
                 {variety.market_price_per_kg == null
                   ? say("Not set")
@@ -558,7 +564,11 @@ function AdminCropVarieties({ lang = "en" }) {
         <button
           type="button"
           className="ad-btn ad-outline"
-          disabled={busy || result.loading || pageOffset === 0}
+          disabled={
+            busy ||
+            result.loading ||
+            pageOffset === 0
+          }
           onClick={() =>
             setPageOffset((value) =>
               Math.max(0, value - pageSize),
@@ -599,6 +609,7 @@ export default function AdminDashboard() {
 
   const [account, setAccount] = useState(null);
   const [authError, setAuthError] = useState("");
+
   const [page, setPage] = useState("overview");
   const [offset, setOffset] = useState(0);
   const [revision, setRevision] = useState(0);
@@ -781,13 +792,19 @@ export default function AdminDashboard() {
         `?limit=${LIMIT}&offset=${historyOffset}`;
     }
 
-    if (page === "payments" && paymentTab === "farmer") {
+    if (
+      page === "payments" &&
+      paymentTab === "farmer"
+    ) {
       historyPath =
         `/admin/farmer-purchases/${selected.id}/payments` +
         `?limit=${LIMIT}&offset=${historyOffset}`;
     }
 
-    if (page === "payments" && paymentTab !== "farmer") {
+    if (
+      page === "payments" &&
+      paymentTab !== "farmer"
+    ) {
       const kind =
         paymentTab === "buyer" ? "buyer" : "subscription";
 
@@ -824,7 +841,8 @@ export default function AdminDashboard() {
     !Array.isArray(rawRows);
 
   const totalRecords =
-    expectsEnvelope && result.data?.total_records != null
+    expectsEnvelope &&
+    result.data?.total_records != null
       ? Number(result.data.total_records)
       : NaN;
 
@@ -839,15 +857,19 @@ export default function AdminDashboard() {
       : [];
 
   const hasHistoryNext =
-    page === "users" && history.data?.total_records != null
+    page === "users" &&
+    history.data?.total_records != null
       ? historyOffset + historyRows.length <
         Number(history.data.total_records)
       : historyRows.length === LIMIT;
 
   const summary =
-    page === "overview" && result.data ? result.data : {};
+    page === "overview" && result.data
+      ? result.data
+      : {};
 
-  const report = page === "reports" ? result.data : null;
+  const report =
+    page === "reports" ? result.data : null;
 
   async function mutate(endpoint, payload, message) {
     if (actionLock.current) return;
@@ -905,9 +927,14 @@ export default function AdminDashboard() {
       .trim()
       .replace(/\s+/g, " ");
 
-    if (reason.length < 3 || reason.length > 1000) {
+    if (
+      reason.length < 3 ||
+      reason.length > 1000
+    ) {
       setActionError(
-        t("Enter a reason between 3 and 1000 characters."),
+        t(
+          "Enter a reason between 3 and 1000 characters.",
+        ),
       );
       return;
     }
@@ -941,7 +968,7 @@ export default function AdminDashboard() {
 
     if (
       !selected ||
-      selected.review_status !== "pending" ||
+      (selected.review_status ?? selected.status) !== "pending" ||
       actionLock.current
     ) {
       return;
@@ -969,6 +996,26 @@ export default function AdminDashboard() {
     );
   }
 
+  function toggleHarvestPublication() {
+    if (
+      !selected ||
+      actionLock.current ||
+      (selected.review_status ?? selected.status) !== "approved"
+    ) {
+      return;
+    }
+
+    const makePublic = !selected.is_public;
+
+    mutate(
+      `/admin/harvests/${selected.id}/publish`,
+      {
+        is_public: makePublic,
+      },
+      makePublic ? "Published" : "Not published",
+    );
+  }
+
   function updatePlan() {
     if (!selected || actionLock.current) return;
 
@@ -988,13 +1035,20 @@ export default function AdminDashboard() {
 
     mutate(
       `/admin/subscription-plans/${selected.id}`,
-      { is_active: active },
+      {
+        is_active: active,
+      },
       "Subscription plan updated.",
     );
   }
 
   async function downloadReport() {
-    if (actionLock.current || !monthQuery(month)) return;
+    if (
+      actionLock.current ||
+      !monthQuery(month)
+    ) {
+      return;
+    }
 
     actionLock.current = true;
     setBusy(true);
@@ -1007,12 +1061,16 @@ export default function AdminDashboard() {
       ).replace(/\/+$/, "");
 
       const headers = new Headers();
+
       const token = sessionStorage.getItem(
         "millet_access_token",
       );
 
       if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
+        headers.set(
+          "Authorization",
+          `Bearer ${token}`,
+        );
       }
 
       const response = await fetch(
@@ -1021,7 +1079,9 @@ export default function AdminDashboard() {
       );
 
       if (!response.ok) {
-        const data = await response.json().catch(() => null);
+        const data = await response
+          .json()
+          .catch(() => null);
 
         throw new Error(
           typeof data?.detail === "string"
@@ -1035,8 +1095,10 @@ export default function AdminDashboard() {
       );
 
       const anchor = document.createElement("a");
+
       anchor.href = url;
-      anchor.download = `millet-plus-report-${month}.csv`;
+      anchor.download =
+        `millet-plus-report-${month}.csv`;
 
       document.body.appendChild(anchor);
       anchor.click();
@@ -1076,11 +1138,14 @@ export default function AdminDashboard() {
         ["crop_cycle_id", "Crop cycle"],
         ["total_quantity_kg", "Quantity (kg)"],
         ["harvest_date", "Harvest date"],
-        ["review_status", "Review status"],
+        ["status", "Status"],
       ];
     }
 
-    if (page === "payments" && paymentTab === "farmer") {
+    if (
+      page === "payments" &&
+      paymentTab === "farmer"
+    ) {
       return [
         ["id", "Purchase"],
         ["farmer_name", "Farmer"],
@@ -1099,7 +1164,9 @@ export default function AdminDashboard() {
           paymentTab === "buyer"
             ? "buyer_name"
             : "farmer_name",
-          paymentTab === "buyer" ? "Buyer" : "Farmer",
+          paymentTab === "buyer"
+            ? "Buyer"
+            : "Farmer",
         ],
         ["amount", "Amount"],
         ["payment_status", "Payment status"],
@@ -1150,7 +1217,10 @@ export default function AdminDashboard() {
   if (!account) {
     return (
       <main className="admin-dashboard ad-auth">
-        <img src="/images/logo.png" alt="Millet Plus" />
+        <img
+          src="/images/logo.png"
+          alt="Millet Plus"
+        />
 
         <p role={authError ? "alert" : "status"}>
           {authError || t("Loading your dashboard…")}
@@ -1169,7 +1239,10 @@ export default function AdminDashboard() {
     <div className="admin-dashboard">
       <header className="ad-header">
         <Link to="/" className="ad-brand">
-          <img src="/images/logo.png" alt="Millet Plus" />
+          <img
+            src="/images/logo.png"
+            alt="Millet Plus"
+          />
         </Link>
 
         <span className="ad-header-title">
@@ -1177,7 +1250,10 @@ export default function AdminDashboard() {
         </span>
 
         <div className="ad-header-actions">
-          <div className="ad-language" aria-label="Language">
+          <div
+            className="ad-language"
+            aria-label="Language"
+          >
             <button
               type="button"
               aria-pressed={lang === "en"}
@@ -1201,6 +1277,7 @@ export default function AdminDashboard() {
             <span className="ad-avatar">
               {account.name?.charAt(0)?.toUpperCase() || "A"}
             </span>
+
             <span>{account.name}</span>
           </div>
 
@@ -1239,7 +1316,10 @@ export default function AdminDashboard() {
             ))}
           </nav>
 
-          <div className="ad-sidebar-art" aria-hidden="true">
+          <div
+            className="ad-sidebar-art"
+            aria-hidden="true"
+          >
             <img
               src="/images/premium-millet.png"
               alt=""
@@ -1309,13 +1389,19 @@ export default function AdminDashboard() {
             </div>
 
             {notice && (
-              <p className="ad-alert ad-success" role="status">
+              <p
+                className="ad-alert ad-success"
+                role="status"
+              >
                 {notice}
               </p>
             )}
 
             {actionError && (
-              <p className="ad-alert ad-error" role="alert">
+              <p
+                className="ad-alert ad-error"
+                role="alert"
+              >
                 {actionError}
               </p>
             )}
@@ -1375,10 +1461,18 @@ export default function AdminDashboard() {
                     clearSelection();
                   }}
                 >
-                  <option value="">{t("All roles")}</option>
-                  <option value="farmer">{t("Farmer")}</option>
-                  <option value="buyer">{t("Buyer")}</option>
-                  <option value="admin">{t("Admin")}</option>
+                  <option value="">
+                    {t("All roles")}
+                  </option>
+                  <option value="farmer">
+                    {t("Farmer")}
+                  </option>
+                  <option value="buyer">
+                    {t("Buyer")}
+                  </option>
+                  <option value="admin">
+                    {t("Admin")}
+                  </option>
                 </select>
 
                 <select
@@ -1394,7 +1488,9 @@ export default function AdminDashboard() {
                   <option value="">
                     {t("All statuses")}
                   </option>
-                  <option value="true">{t("Active")}</option>
+                  <option value="true">
+                    {t("Active")}
+                  </option>
                   <option value="false">
                     {t("Inactive")}
                   </option>
@@ -1457,6 +1553,7 @@ export default function AdminDashboard() {
               <div className="ad-toolbar">
                 <label className="ad-month-label">
                   {t("Report month")}
+
                   <input
                     type="month"
                     value={month}
@@ -1484,13 +1581,19 @@ export default function AdminDashboard() {
             )}
 
             {result.error && (
-              <p className="ad-alert ad-error" role="alert">
+              <p
+                className="ad-alert ad-error"
+                role="alert"
+              >
                 {result.error}
               </p>
             )}
 
             {invalidList && (
-              <p className="ad-alert ad-error" role="alert">
+              <p
+                className="ad-alert ad-error"
+                role="alert"
+              >
                 {t(
                   "The backend returned an unexpected list format.",
                 )}
@@ -1498,7 +1601,10 @@ export default function AdminDashboard() {
             )}
 
             {result.loading && (
-              <div className="ad-loading" role="status">
+              <div
+                className="ad-loading"
+                role="status"
+              >
                 <span className="ad-spinner" />
                 {t("Loading records…")}
               </div>
@@ -1513,7 +1619,10 @@ export default function AdminDashboard() {
 
             {page === "orders" && (
               <section className="ad-panel ad-integrated">
-                <OrdersPanel role="admin" lang={lang} />
+                <OrdersPanel
+                  role="admin"
+                  lang={lang}
+                />
               </section>
             )}
 
@@ -1558,6 +1667,7 @@ export default function AdminDashboard() {
                           <span className="ad-eyebrow">
                             {t("WORKSPACE")}
                           </span>
+
                           <h2>{t("Needs attention")}</h2>
                         </div>
 
@@ -1715,6 +1825,7 @@ export default function AdminDashboard() {
                         key={key}
                       >
                         <span>{t(title)}</span>
+
                         <strong>
                           {money(report.summary?.[key])}
                         </strong>
@@ -1751,7 +1862,10 @@ export default function AdminDashboard() {
                     ];
 
                     return (
-                      <section className="ad-panel" key={key}>
+                      <section
+                        className="ad-panel"
+                        key={key}
+                      >
                         <div className="ad-panel-heading">
                           <h2>{t(title)}</h2>
                           <span>{records.length}</span>
@@ -1792,11 +1906,16 @@ export default function AdminDashboard() {
                 </div>
 
                 {detailPath && details.loading && (
-                  <p role="status">{t("Loading…")}</p>
+                  <p role="status">
+                    {t("Loading…")}
+                  </p>
                 )}
 
                 {details.error && (
-                  <p className="ad-alert ad-error" role="alert">
+                  <p
+                    className="ad-alert ad-error"
+                    role="alert"
+                  >
                     {details.error}
                   </p>
                 )}
@@ -1828,6 +1947,7 @@ export default function AdminDashboard() {
 
                       <label>
                         {t("Reason")}
+
                         <textarea
                           name="reason"
                           required
@@ -1867,7 +1987,7 @@ export default function AdminDashboard() {
                   )}
 
                 {page === "harvests" &&
-                  selected.review_status === "pending" && (
+                  (selected.review_status ?? selected.status) === "pending" && (
                     <form
                       key={`harvest-${selected.id}`}
                       className="ad-action-form"
@@ -1877,10 +1997,15 @@ export default function AdminDashboard() {
 
                       <label>
                         {t("Decision")}
-                        <select name="status" disabled={busy}>
+
+                        <select
+                          name="status"
+                          disabled={busy}
+                        >
                           <option value="approved">
                             {t("Approve")}
                           </option>
+
                           <option value="rejected">
                             {t("Reject")}
                           </option>
@@ -1889,6 +2014,7 @@ export default function AdminDashboard() {
 
                       <label>
                         {t("Review note")}
+
                         <textarea
                           name="review_note"
                           maxLength={1000}
@@ -1902,35 +2028,71 @@ export default function AdminDashboard() {
                         className="ad-btn"
                         disabled={busy}
                       >
-                        {t(busy ? "Saving…" : "Save review")}
+                        {t(
+                          busy
+                            ? "Saving…"
+                            : "Save review",
+                        )}
                       </button>
                     </form>
                   )}
 
-                {page === "plans" && planTab === "plans" && (
-                  <div className="ad-action-form">
-                    <h3>{t("Plan availability")}</h3>
+                {page === "harvests" &&
+                  (selected.review_status ?? selected.status) === "approved" && (
+                    <div className="ad-action-form">
+                      <h3>{t("Public visibility")}</h3>
 
-                    <p className="ad-muted">
-                      {t(
-                        "Change whether this plan is available for subscription requests.",
-                      )}
-                    </p>
+                      <Badge
+                        value={
+                          selected.is_public
+                            ? "Published"
+                            : "Not published"
+                        }
+                        t={t}
+                      />
 
-                    <button
-                      type="button"
-                      className="ad-btn"
-                      disabled={busy}
-                      onClick={updatePlan}
-                    >
-                      {t(
-                        selected.is_active
-                          ? "Disable plan"
-                          : "Enable plan",
-                      )}
-                    </button>
-                  </div>
-                )}
+                      <button
+                        type="button"
+                        className="ad-btn"
+                        disabled={busy}
+                        onClick={toggleHarvestPublication}
+                      >
+                        {t(
+                          busy
+                            ? "Saving…"
+                            : selected.is_public
+                              ? "Hide from public"
+                              : "Publish",
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                {page === "plans" &&
+                  planTab === "plans" && (
+                    <div className="ad-action-form">
+                      <h3>{t("Plan availability")}</h3>
+
+                      <p className="ad-muted">
+                        {t(
+                          "Change whether this plan is available for subscription requests.",
+                        )}
+                      </p>
+
+                      <button
+                        type="button"
+                        className="ad-btn"
+                        disabled={busy}
+                        onClick={updatePlan}
+                      >
+                        {t(
+                          selected.is_active
+                            ? "Disable plan"
+                            : "Enable plan",
+                        )}
+                      </button>
+                    </div>
+                  )}
 
                 {historyPath && (
                   <div className="ad-history">
@@ -1964,18 +2126,30 @@ export default function AdminDashboard() {
                                     "previous_active",
                                     "Previously active",
                                   ],
-                                  ["new_active", "Now active"],
+                                  [
+                                    "new_active",
+                                    "Now active",
+                                  ],
                                   ["reason", "Reason"],
                                   [
                                     "changed_by_name",
                                     "Changed by",
                                   ],
-                                  ["changed_at", "Changed at"],
+                                  [
+                                    "changed_at",
+                                    "Changed at",
+                                  ],
                                 ]
                               : [
-                                  ["receipt_number", "Receipt"],
+                                  [
+                                    "receipt_number",
+                                    "Receipt",
+                                  ],
                                   ["amount", "Amount"],
-                                  ["payment_method", "Method"],
+                                  [
+                                    "payment_method",
+                                    "Method",
+                                  ],
                                   ["paid_at", "Paid at"],
                                   ["note", "Note"],
                                 ]
@@ -1988,7 +2162,8 @@ export default function AdminDashboard() {
                             type="button"
                             className="ad-btn ad-outline"
                             disabled={
-                              busy || historyOffset === 0
+                              busy ||
+                              historyOffset === 0
                             }
                             onClick={() =>
                               setHistoryOffset((value) =>
@@ -2007,7 +2182,10 @@ export default function AdminDashboard() {
                           <button
                             type="button"
                             className="ad-btn ad-outline"
-                            disabled={busy || !hasHistoryNext}
+                            disabled={
+                              busy ||
+                              !hasHistoryNext
+                            }
                             onClick={() =>
                               setHistoryOffset(
                                 (value) => value + LIMIT,
@@ -2028,7 +2206,10 @@ export default function AdminDashboard() {
           <footer className="ad-footer ad-admin-footer">
             <div className="ad-admin-footer-top">
               <div className="ad-admin-footer-brand">
-                <Link to="/" className="ad-footer-brand">
+                <Link
+                  to="/"
+                  className="ad-footer-brand"
+                >
                   <img
                     src="/images/logo.png"
                     alt="Millet Plus"
@@ -2042,7 +2223,9 @@ export default function AdminDashboard() {
                 </p>
 
                 <strong>
-                  {t("Better crops. Stronger communities.")}
+                  {t(
+                    "Better crops. Stronger communities.",
+                  )}
                 </strong>
               </div>
 
@@ -2101,10 +2284,14 @@ export default function AdminDashboard() {
               </span>
 
               <span>
-                {t("Growing together, season after season.")}
+                {t(
+                  "Growing together, season after season.",
+                )}
               </span>
 
-              <Link to="/">{t("Home")}</Link>
+              <Link to="/">
+                {t("Home")}
+              </Link>
             </div>
           </footer>
         </div>
